@@ -56,4 +56,4 @@ app.get("/", (req, res) => {
 //       console.log(err);
 //     });
 // });
-app.use("/", attendanceRouter);
+app.use("/api", attendanceRouter);
