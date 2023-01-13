@@ -2,7 +2,6 @@ const express = require("express");
 const User = require("../models/userSchema");
 const Student = require("../models/studentschema");
 const Faculty = require("../models/facultyschema");
-const { findByIdAndDelete } = require("../models/userSchema");
 
 //User login
 const login = async (req, res, next) => {
@@ -32,7 +31,60 @@ const login = async (req, res, next) => {
       console.log(err);
     });
 };
-
+//user crud
+//show user
+const showU = (req, res, next) => {
+    User.find()
+      .then((response) => {
+        res.status(200).json({ response });
+      })
+      .catch((error) => {
+        res.json({
+          message: "USer find Error",
+        });
+      });
+  };
+  //add user
+  const createU = (req, res, next) => {
+    const { username,password,isAdmin } = req.body;
+    const student = new Student({
+        username: username,
+        password: password,
+        isAdmin: isAdmin,
+    });
+    User
+      .save()
+      .then(() => {
+        res.status(200).json({ message: "student added success" });
+      })
+      .catch((error) => {
+        res.status(400).json({ message: "student adding failed" });
+      });
+  };
+  //delete user
+  const removeU = async (req, res, next) => {
+    let id = req.body.username;
+    await User.findByIdAndDelete(id).catch(function (err) {
+      console.log(err);
+    });
+  };
+  //update user
+  const updateU = (req, res, next) => {
+    let id = req.body.username;
+    const { username,password,isAdmin } = req.body;
+    let updateData = {
+      username:username,
+      password:password,
+      isAdmin:isAdmin
+    };
+    User.findByIdAndUpdate(id, { $set: updateData })
+      .then(() => {
+        res.status(200).json({ message: "user update success" });
+      })
+      .catch((error) => {
+        res.status(400).json({ message: "user update failed" });
+      });
+  };
 //Student Operations
 //Read data
 const showS = (req, res, next) => {
@@ -92,14 +144,25 @@ const updateStudent = (req, res, next) => {
     });
 };
 //faculty oprations
+//show faculty
+const showF = (req, res, next) => {
+    Faculty.find()
+      .then((response) => {
+        res.status(200).json({ response });
+      })
+      .catch((error) => {
+        res.json({
+          message: "faculty show Error",
+        });
+      });
+  };
 //create faculty
 const createFaculty = (req, res, next) => {
-  const { name, year, degree, courses } = req.body;
+  const { name, username} = req.body;
   const faculty = new Faculty({
+    username:username,
     name: name,
-    year: year,
-    degree: degree,
-    courses: courses,
+    subjects:req.boby.subjects
   });
   faculty
     .save()
@@ -112,20 +175,19 @@ const createFaculty = (req, res, next) => {
 };
 //delete faculty
 const removeFaculty = async (req, res, next) => {
-  let id = req.body.rollno;
+  let id = req.body.username;
   await Faculty.findByIdAndDelete(id).catch(function (err) {
     console.log(err);
   });
 };
 //update faculty
 const updateFaculty = (req, res, next) => {
-  let id = req.body.rollno;
-  const { name, year, degree, courses } = req.body;
+  let id = req.body.username;
+  const { name,username} = req.body;
   let updateData = {
+    username:username,
     name: name,
-    year: year,
-    degree: degree,
-    courses: courses,
+    subjects:req.body.subjects
   };
   Faculty.findByIdAndUpdate(id, { $set: updateData })
     .then(() => {
@@ -143,5 +205,10 @@ module.exports = {
   createFaculty,
   removeFaculty,
   updateFaculty,
+  showF,
   showS,
+  createU,
+  showU,
+  removeU,
+  updateU
 };
