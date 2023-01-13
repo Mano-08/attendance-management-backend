@@ -37,7 +37,8 @@ app.get("/", (req, res) => {
 app.post("/api/logincred", async (req, res) => {
   const { username, password, isAdmin } = req.body;
   console.log(username, password, isAdmin);
-  const result = await User.findOne(
+  let flag = false;
+  const response = await User.findOne(
     {
       username: username,
       password: password,
@@ -47,7 +48,11 @@ app.post("/api/logincred", async (req, res) => {
       if (err) {
         console.log(err);
       } else {
-        console.log("data found: ", data);
+        if (data === null) {
+          res.status(400).json({ message: "failed" });
+        } else if (data !== null) {
+          res.status(200).json({ message: "success" });
+        }
       }
     }
   )
