@@ -4,24 +4,26 @@ const Schema = mongoose.Schema;
 const studentSchema = new Schema({
   name: {
     type: String,
+    required:true,
   },
-  attendance:{
+  rollno:{
+    type:Number,
+    required: true,
 
   },
   year: {
     type: Number,
-  },
-  batch: {
-    type: String,
+    required: true,
   },
   degree: {
     type: String,
+    required: true,
   },
   courses: [
-    {
-      course: String,
-      attendance: Number,
-    },
+    {  
+      course: {type:String,required:true},
+      attendance: {type:Number,required:true}
+     },
   ],
 });
 
