@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/userSchema");
 const Student = require("../models/studentschema");
 const Faculty = require("../models/facultyschema");
+const { encode } = require("../utils/jwt");
 
 //User login
 const login = async (req, res, next) => {
@@ -21,8 +22,11 @@ const login = async (req, res, next) => {
         if (data === null) {
           res.status(400).json({ message: "failed" });
         } else if (data !== null) {
-          let token = await login.generateAuthToken;
-          res.status(200).json({ message: "success" });
+          res
+            .status(200)
+            .json({
+              token: encode({ username: data.username, isAdmin: data.isAdmin }),
+            });
         }
       }
     }

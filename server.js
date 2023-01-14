@@ -5,6 +5,14 @@ const cors = require("cors");
 const attendanceRouter = require("./routes/attendence");
 const jwt = require("jsonwebtoken");
 const app = express();
+const { encode, decode, verify } = require("./utils/jwt");
+// encode({message: "hey"});
+// decode(encode({message: "hey"}));
+// try {
+//   verify("token")
+// } catch (e) {
+//   console.log(e.message)
+// }
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cors());
