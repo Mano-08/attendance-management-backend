@@ -2,6 +2,7 @@ const express = require("express");
 const User = require("../models/userSchema");
 const Student = require("../models/studentschema");
 const Faculty = require("../models/facultyschema");
+const { update, mapReduce } = require("../models/userSchema");
 
 //User login
 const login = async (req, res, next) => {
@@ -136,8 +137,18 @@ const removeStudent = async (req, res, next) => {
 };
 //Update Student
 const updateStudent = (req, res, next) => {
-  let id = req.body.rollno;
-  const updateData = req.body;
+  const id = req.body.rollno;
+  const { name, rollno, year, degree, courses } = req.body;
+  let updateData = {
+    name: name,
+    rollno: parseInt(rollno),
+    year: parseInt(year),
+    degree: degree,
+    courses: courses,
+  };
+  for (var i = 0; i < updateData.courses.length; i++) {
+    updateData.courses[i].attendance = +updateData.courses[i].attendance;
+  }
   console.log(updateData);
   Student.findOneAndUpdate({ rollno: id }, updateData)
     .then(() => {
@@ -223,13 +234,14 @@ const createCourse = async (req, res, next) => {
 //delete courses
 const deleteCourse = async (req, res, next) => {
   const { rollno, index } = req.body;
+  console.log(rollno, index);
   const student = await Student.findOne({ rollno: rollno });
-  const newcourses = [
-    student.courses.slice(0, { index: index }),
-    student.courses.slice({ index: index }),
-  ];
+  const newcourses = student.courses.filter(function (ele, ind) {
+    if (ind != index) return ele;
+  });
+
   await Student.updateOne({ rollno: rollno }, { courses: newcourses });
-  Student.save().catch((err) => {
+  student.save().catch((err) => {
     res.json({ message: "deletecourse failed" });
   });
 };
