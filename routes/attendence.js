@@ -15,6 +15,8 @@ router.post("/remove-user", attendance.removeU);
 router.get("/show-student", attendance.showS);
 router.get("/show-faculty", attendance.showF);
 router.get("/show-user",attendance.showU);
+router.post("/create-courses",attendance.createCourse)
+router.post("/delete-courses",attendance.deleteCourse)
 
 
 module.exports = router;
