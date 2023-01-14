@@ -18,13 +18,6 @@ mongoose.connect(`${process.env.ATLAS_KEY}`, (error) => {
   }
 });
 
-// const UserSchema = mongoose.Schema({
-//   username: String,
-//   password: String,
-//   isAdmin: Boolean,
-// });
-// const User = mongoose.model("User", UserSchema, "users-collection");
-
 const PORT = 5000;
 
 app.listen(PORT, (req, res) => {
@@ -34,26 +27,5 @@ app.listen(PORT, (req, res) => {
 app.get("/", (req, res) => {
   res.send("Hi");
 });
-// app.post("/api/logincred", async (req, res) => {
-//   const { username, password, isAdmin } = req.body;
-//   console.log(username, password, isAdmin);
-//   const result = await User.findOne(
-//     {
-//       username: username,
-//       password: password,
-//       isAdmin: isAdmin,
-//     },
-//     (err, data) => {
-//       if (err) {
-//         console.log(err);
-//       } else {
-//         console.log("data found: ", data);
-//       }
-//     }
-//   )
-//     .clone()
-//     .catch(function (err) {
-//       console.log(err);
-//     });
-// });
+
 app.use("/api", attendanceRouter);
