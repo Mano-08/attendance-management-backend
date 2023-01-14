@@ -3,6 +3,8 @@ const User = require("../models/userSchema");
 const Student = require("../models/studentschema");
 const Faculty = require("../models/facultyschema");
 const { encode } = require("../utils/jwt");
+const { findOne, updateOne } = require("../models/userSchema");
+const { findOneAndUpdate } = require("../models/studentschema");
 
 //User login
 const login = async (req, res, next) => {
@@ -22,11 +24,10 @@ const login = async (req, res, next) => {
         if (data === null) {
           res.status(400).json({ message: "failed" });
         } else if (data !== null) {
-          res
-            .status(200)
-            .json({
-              token: encode({ username: data.username, isAdmin: data.isAdmin }),
-            });
+          res.status(200).json({
+            message: "success",
+            token: encode({ username: data.username, isAdmin: data.isAdmin }),
+          });
         }
       }
     }
@@ -289,21 +290,24 @@ const updateFaculty = (req, res, next) => {
 //course Add and Delete
 //add courses
 const createCourse = async (req, res, next) => {
-  const { rollno, courses } = req.body;
-  const student = await Student.findOne({ rollno: rollno });
-  const oldcourses = student.courses;
-  const newcourses = oldcourses.push(courses);
+  let { rollno, courses } = req.body;
+  console.log(req.body);
+  courses.attendance = +courses.attendance;
   await Student.updateOne(
-    {
-      rollno: rollno,
-    },
-    {
-      courses: newcourses,
+    { rollno: rollno },
+    { $push: { courses: courses } },
+    (err) => {
+      if (err) {
+        console.log(err);
+      }
     }
-  );
-  Student.save().catch((err) => {
-    res.json({ message: "addcourse failed" });
-  });
+  )
+    .then(console.log(79))
+    .catch((err) => {
+      if (err) {
+        console.log;
+      }
+    });
 };
 //delete courses
 const deleteCourse = async (req, res, next) => {
