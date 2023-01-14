@@ -2,7 +2,6 @@ const express = require("express");
 const User = require("../models/userSchema");
 const Student = require("../models/studentschema");
 const Faculty = require("../models/facultyschema");
-const { update, mapReduce } = require("../models/userSchema");
 
 //User login
 const login = async (req, res, next) => {
@@ -23,7 +22,6 @@ const login = async (req, res, next) => {
           res.status(400).json({ message: "failed" });
         } else if (data !== null) {
           let token = await login.generateAuthToken;
-          console.log(token);
           res.status(200).json({ message: "success" });
         }
       }
@@ -87,9 +85,43 @@ const updateU = (req, res, next) => {
       res.status(400).json({ message: "user update failed" });
     });
 };
+
 //Student Operations
 //Read data
 const showS = (req, res, next) => {
+  // const student = new Student({
+  //   name: "ddddbb",
+  //   rollno: 113,
+  //   year: 2,
+  //   degree: "Aw",
+  //   courses: [
+  //     {
+  //       course: "AA101",
+  //       attendance: 22,
+  //     },
+  //     {
+  //       course: "LCD01",
+  //       attendance: 22,
+  //     },
+  //     {
+  //       course: "CC101",
+  //       attendance: 22,
+  //     },
+  //     {
+  //       course: "PSSE101",
+  //       attendance: 22,
+  //     },
+  //   ],
+  // });
+  // student
+  //   .save()
+  //   .then(() => {
+  //     res.status(200).json({ message: "student added success" });
+  //   })
+  //   .catch((error) => {
+  //     res.status(400).json({ message: "student adding failed" });
+  //   });
+
   Student.find()
     .then((response) => {
       res.status(200).json({ response });
@@ -103,9 +135,10 @@ const showS = (req, res, next) => {
 
 //Create Student
 const createStudent = (req, res, next) => {
-  const { name, year, degree, courses } = req.body;
+  const { name, rollno, year, degree, courses } = req.body;
   const student = new Student({
     name: name,
+    rollno: rollno,
     year: year,
     degree: degree,
     courses: courses,
@@ -136,28 +169,65 @@ const removeStudent = async (req, res, next) => {
     });
 };
 //Update Student
+// const updateStudent = (req, res, next) => {
+//   const id = req.body.rollno;
+//   const { name, rollno, year, degree, courses } = req.body;
+//   let updateData = {
+//     name: name,
+//     rollno: parseInt(rollno),
+//     year: parseInt(year),
+//     degree: degree,
+//     courses: courses,
+//   };
+//   for (var i = 0; i < updateData.courses.length; i++) {
+//     updateData.courses[i].attendance = +updateData.courses[i].attendance;
+//   }
+//   console.log(updateData);
+//   Student.findOneAndUpdate({ rollno: id }, { $set: updateData })
+//     .then(() => {
+//       res.status(200).json({ message: "success" });
+//     })
+//     .catch((error) => {
+//       res.status(400).json({ message: "failed" });
+//     });
+// };
 const updateStudent = (req, res, next) => {
-  const id = req.body.rollno;
-  const { name, rollno, year, degree, courses } = req.body;
-  let updateData = {
-    name: name,
-    rollno: parseInt(rollno),
-    year: parseInt(year),
-    degree: degree,
-    courses: courses,
-  };
-  for (var i = 0; i < updateData.courses.length; i++) {
-    updateData.courses[i].attendance = +updateData.courses[i].attendance;
-  }
-  console.log(updateData);
-  Student.findOneAndUpdate({ rollno: id }, updateData)
-    .then(() => {
-      res.status(200).json({ message: "success" });
-    })
-    .catch((error) => {
-      res.status(400).json({ message: "failed" });
-    });
+  const { id, name, rollno, year, degree, courses } = req.body;
+  let flag = true;
+  const duplicate = parseInt(rollno);
+  Student.findOne({ rollno: duplicate }, (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (data === null) {
+        let updateData = {
+          name: name,
+          rollno: parseInt(rollno),
+          year: parseInt(year),
+          degree: degree,
+          courses: courses,
+        };
+        for (var i = 0; i < updateData.courses.length; i++) {
+          updateData.courses[i].attendance = +updateData.courses[i].attendance;
+        }
+        Student.replaceOne({ rollno: id }, updateData, (err) => {
+          if (err) {
+            console.log(err);
+          }
+        })
+          .then(() => {
+            res.status(200).json({ message: "success" });
+          })
+          .catch((error) => {
+            res.status(400).json({ message: "failed" });
+          });
+      } else {
+        res.status(400).json({ message: "Roll number already exists" });
+      }
+    }
+  });
 };
+
 //faculty oprations
 //show faculty
 const showF = (req, res, next) => {
