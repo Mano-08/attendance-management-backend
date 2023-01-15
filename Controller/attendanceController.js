@@ -5,6 +5,7 @@ const Faculty = require("../models/facultyschema");
 const { encode } = require("../utils/jwt");
 const { findOne, updateOne } = require("../models/userSchema");
 const { findOneAndUpdate } = require("../models/studentschema");
+const { decode } = require("jsonwebtoken");
 
 //User login
 const login = async (req, res, next) => {
@@ -40,9 +41,16 @@ const login = async (req, res, next) => {
 //user crud
 //show user
 const showU = (req, res, next) => {
+  const { isAdmin } = req.body;
   User.find()
     .then((response) => {
-      res.status(200).json({ response });
+      decode();
+      res
+        .status(200)
+        .json({
+          response,
+          token: encode({ username: data.username, isAdmin: data.isAdmin }),
+        });
     })
     .catch((error) => {
       res.json({
@@ -139,22 +147,36 @@ const showS = (req, res, next) => {
 };
 
 //Create Student
-const createStudent = (req, res, next) => {
+const createStudent = async (req, res, next) => {
   const { name, rollno, year, degree, courses } = req.body;
-  const student = new Student({
-    name: name,
-    rollno: rollno,
-    year: year,
-    degree: degree,
-    courses: courses,
-  });
-  student
-    .save()
-    .then(() => {
-      res.status(200).json({ message: "student added success" });
-    })
-    .catch((error) => {
-      res.status(400).json({ message: "student adding failed" });
+  await Student.findOne({ rollno: rollno }, async (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (data === null) {
+        const student = new Student({
+          name: name,
+          rollno: rollno,
+          year: year,
+          degree: degree,
+          courses: courses,
+        });
+        student
+          .save()
+          .then(() => {
+            res.status(200).json();
+          })
+          .catch((error) => {
+            res.status(400).json({ message: "Failed to add student" });
+          });
+      } else {
+        res.status(400).json({ message: "Roll No. already exists" });
+      }
+    }
+  })
+    .clone()
+    .catch((err) => {
+      console.log(err);
     });
 };
 
@@ -174,37 +196,14 @@ const removeStudent = async (req, res, next) => {
     });
 };
 //Update Student
-// const updateStudent = (req, res, next) => {
-//   const id = req.body.rollno;
-//   const { name, rollno, year, degree, courses } = req.body;
-//   let updateData = {
-//     name: name,
-//     rollno: parseInt(rollno),
-//     year: parseInt(year),
-//     degree: degree,
-//     courses: courses,
-//   };
-//   for (var i = 0; i < updateData.courses.length; i++) {
-//     updateData.courses[i].attendance = +updateData.courses[i].attendance;
-//   }
-//   console.log(updateData);
-//   Student.findOneAndUpdate({ rollno: id }, { $set: updateData })
-//     .then(() => {
-//       res.status(200).json({ message: "success" });
-//     })
-//     .catch((error) => {
-//       res.status(400).json({ message: "failed" });
-//     });
-// };
-const updateStudent = (req, res, next) => {
+const updateStudent = async (req, res, next) => {
   const { id, name, rollno, year, degree, courses } = req.body;
-  let flag = true;
   const duplicate = parseInt(rollno);
-  Student.findOne({ rollno: duplicate }, (err, data) => {
+  await Student.findOne({ rollno: duplicate }, async (err, data) => {
     if (err) {
       console.log(err);
     } else {
-      if (data === null) {
+      if (data === null || data?.rollno === id) {
         let updateData = {
           name: name,
           rollno: parseInt(rollno),
@@ -215,7 +214,7 @@ const updateStudent = (req, res, next) => {
         for (var i = 0; i < updateData.courses.length; i++) {
           updateData.courses[i].attendance = +updateData.courses[i].attendance;
         }
-        Student.replaceOne({ rollno: id }, updateData, (err) => {
+        await Student.replaceOne({ rollno: id }, updateData, (err) => {
           if (err) {
             console.log(err);
           }
@@ -224,13 +223,17 @@ const updateStudent = (req, res, next) => {
             res.status(200).json({ message: "success" });
           })
           .catch((error) => {
-            res.status(400).json({ message: "failed" });
+            res.status(400).json({ message: error });
           });
       } else {
         res.status(400).json({ message: "Roll number already exists" });
       }
     }
-  });
+  })
+    .clone()
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 //faculty oprations
