@@ -3,7 +3,9 @@ const User = require("../models/userSchema");
 const Student = require("../models/studentschema");
 const Faculty = require("../models/facultyschema");
 const { encode } = require("../utils/jwt");
-const { parse } = require("dotenv");
+const { findOne, updateOne } = require("../models/userSchema");
+const { findOneAndUpdate } = require("../models/studentschema");
+const { decode } = require("jsonwebtoken");
 
 //User login
 const login = async (req, res, next) => {
@@ -24,6 +26,7 @@ const login = async (req, res, next) => {
           res.status(400).json({ message: "failed" });
         } else if (data !== null) {
           res.status(200).json({
+            message: "success",
             token: encode({ username: data.username, isAdmin: data.isAdmin }),
           });
         }
@@ -38,9 +41,16 @@ const login = async (req, res, next) => {
 //user crud
 //show user
 const showU = (req, res, next) => {
+  const { isAdmin } = req.body;
   User.find()
     .then((response) => {
-      res.status(200).json({ response });
+      decode();
+      res
+        .status(200)
+        .json({
+          response,
+          token: encode({ username: data.username, isAdmin: data.isAdmin }),
+        });
     })
     .catch((error) => {
       res.json({
@@ -137,22 +147,36 @@ const showS = (req, res, next) => {
 };
 
 //Create Student
-const createStudent = (req, res, next) => {
+const createStudent = async (req, res, next) => {
   const { name, rollno, year, degree, courses } = req.body;
-  const student = new Student({
-    name: name,
-    rollno: rollno,
-    year: year,
-    degree: degree,
-    courses: courses,
-  });
-  student
-    .save()
-    .then(() => {
-      res.status(200).json({ message: "student added success" });
-    })
-    .catch((error) => {
-      res.status(400).json({ message: "student adding failed" });
+  await Student.findOne({ rollno: rollno }, async (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (data === null) {
+        const student = new Student({
+          name: name,
+          rollno: rollno,
+          year: year,
+          degree: degree,
+          courses: courses,
+        });
+        student
+          .save()
+          .then(() => {
+            res.status(200).json();
+          })
+          .catch((error) => {
+            res.status(400).json({ message: "Failed to add student" });
+          });
+      } else {
+        res.status(400).json({ message: "Roll No. already exists" });
+      }
+    }
+  })
+    .clone()
+    .catch((err) => {
+      console.log(err);
     });
 };
 
@@ -172,28 +196,6 @@ const removeStudent = async (req, res, next) => {
     });
 };
 //Update Student
-// const updateStudent = (req, res, next) => {
-//   const id = req.body.rollno;
-//   const { name, rollno, year, degree, courses } = req.body;
-//   let updateData = {
-//     name: name,
-//     rollno: parseInt(rollno),
-//     year: parseInt(year),
-//     degree: degree,
-//     courses: courses,
-//   };
-//   for (var i = 0; i < updateData.courses.length; i++) {
-//     updateData.courses[i].attendance = +updateData.courses[i].attendance;
-//   }
-//   console.log(updateData);
-//   Student.findOneAndUpdate({ rollno: id }, { $set: updateData })
-//     .then(() => {
-//       res.status(200).json({ message: "success" });
-//     })
-//     .catch((error) => {
-//       res.status(400).json({ message: "failed" });
-//     });
-// };
 const updateStudent = async (req, res, next) => {
   const { id, name, rollno, year, degree, courses } = req.body;
   const duplicate = parseInt(rollno);
@@ -325,40 +327,44 @@ const updateFaculty = async (req, res, next) => {
     });
 };
 
-// const updateFaculty = (req, res, next) => {
-//   let id = req.body.username;
-//   const { name, username } = req.body;
-//   let updateData = {
-//     username: username,
-//     name: name,
-//     subjects: req.body.subjects,
-//   };
-//   Faculty.findByIdAndUpdate(id, { $set: updateData })
-//     .then(() => {
-//       res.status(200).json({ message: "faculty update success" });
-//     })
-//     .catch((error) => {
-//       res.status(400).json({ message: "faculty update failed" });
-//     });
-// };
+//  const updateFaculty =async (req, res, next) => {
+//    let id = req.body.username;
+//    const { username,name } = req.body;
+//    const faculty=await Faculty.findOne({usernaem:username})
+//    let updateData = {
+//      username: username,
+//      name: name,
+//      subjects: req.body.subjects,
+//    };
+//    Faculty.findByIdAndUpdate({_id:faculty.object(_id)}, { $set: updateData })
+//      .then(() => {
+//        res.status(200).json({ message: "faculty update success" });
+//      })
+//      .catch((error) => {
+//        res.status(400).json({ message: "faculty update failed" });
+//      });
+//  };
 //course Add and Delete
 //add courses
 const createCourse = async (req, res, next) => {
-  const { rollno, courses } = req.body;
-  const student = await Student.findOne({ rollno: rollno });
-  const oldcourses = student.courses;
-  const newcourses = oldcourses.push(courses);
+  let { rollno, courses } = req.body;
+  console.log(req.body);
+  courses.attendance = +courses.attendance;
   await Student.updateOne(
-    {
-      rollno: rollno,
-    },
-    {
-      courses: newcourses,
+    { rollno: rollno },
+    { $push: { courses: courses } },
+    (err) => {
+      if (err) {
+        console.log(err);
+      }
     }
-  );
-  Student.save().catch((err) => {
-    res.json({ message: "addcourse failed" });
-  });
+  )
+    .then(console.log(79))
+    .catch((err) => {
+      if (err) {
+        console.log;
+      }
+    });
 };
 //delete courses
 const deleteCourse = async (req, res, next) => {
@@ -373,11 +379,39 @@ const deleteCourse = async (req, res, next) => {
     res.json({ message: "deletecourse failed" });
   });
 };
-//delete subject
+//delete subjects
 const deleteSubject=async (req,res,next)=>{
-  const {useranme,index}=req.body
-  const 
-}
+  const {username,index}=req.body
+  const faculty=await Faculty.findOne({username:username})
+  const newsubjects=faculty.subjects.filter(function(ele,ind){
+    if (ind!=index) return ele;})
+    await Faculty.updateOne({username:username},{subjects:newsubjects});
+    faculty.save().catch()(err=>{
+      res.json({message:"delte subject failed"})
+    })
+  }
+//add subjects
+const createSubjects = async (req, res, next) => {
+  let { username,subjects } = req.body;
+  console.log(req.body);
+  subjecst.courses = +subjects.courses;
+  await Faculty.updateOne(
+    { username: username },
+    { $push: { subjects: subjects } },
+    (err) => {
+      if (err) {
+        console.log(err);
+      }
+    }
+  )
+    .then(console.log(79))
+    .catch((err) => {
+      if (err) {
+        console.log;
+      }
+    });
+};
+
 
 module.exports = {
   login,
@@ -395,4 +429,6 @@ module.exports = {
   updateU,
   deleteCourse,
   createCourse,
+  createSubjects,
+  deleteSubject
 };

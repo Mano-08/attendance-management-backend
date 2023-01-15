@@ -17,6 +17,8 @@ router.get("/show-faculty", attendance.showF);
 router.get("/show-user",attendance.showU);
 router.post("/create-courses",attendance.createCourse)
 router.post("/delete-courses",attendance.deleteCourse)
+router.post("/delete-subjects",attendance.deleteSubject)
+router.post("/create-subjects",attendance.createSubjects)
 
 
 module.exports = router;
