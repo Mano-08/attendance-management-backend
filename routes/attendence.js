@@ -14,11 +14,11 @@ router.post("/remove-faculty", attendance.removeFaculty);
 router.post("/remove-user", attendance.removeU);
 router.get("/show-student", attendance.showS);
 router.get("/show-faculty", attendance.showF);
-router.get("/show-user",attendance.showU);
-router.post("/create-courses",attendance.createCourse)
-router.post("/delete-courses",attendance.deleteCourse)
-router.post("/delete-subjects",attendance.deleteSubject)
-router.post("/create-subjects",attendance.createSubjects)
-
+router.get("/show-user", attendance.showU);
+router.post("/create-courses", attendance.createCourse);
+router.post("/delete-courses", attendance.deleteCourse);
+router.post("/delete-subjects", attendance.deleteSubject);
+router.post("/create-subjects", attendance.createSubjects);
+// router.post("/display-faculty", attendance.displayFac);
 
 module.exports = router;
