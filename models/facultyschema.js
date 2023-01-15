@@ -13,7 +13,7 @@ const facultySchema = new Schema({
   subjects: [
     {
       subject: { type: String, requires: true },
-      courses: { type: [String], required: true },
+      courses: { type: String, required: true },
     },
   ],
 });

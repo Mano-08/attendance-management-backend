@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const attendanceRouter = require("./routes/attendence");
+const jwt = require("jsonwebtoken");
 const app = express();
 const { encode, decode, verify } = require("./utils/jwt");
 // encode({message: "hey"});
