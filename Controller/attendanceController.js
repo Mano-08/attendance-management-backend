@@ -6,33 +6,36 @@ const { encode } = require("../utils/jwt");
 const { findOne, updateOne } = require("../models/userSchema");
 const { findOneAndUpdate } = require("../models/studentschema");
 const { decode } = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 //User login
-const login = async (req, res, next) => {
+const login = (req, res, next) => {
   const { username, password, isAdmin } = req.body;
-  // console.log(username, password, isAdmin);
-  const result = await User.findOne(
-    {
-      username: username,
-      password: password,
-      isAdmin: isAdmin,
-    },
-    async (err, data) => {
-      if (err) {
-        console.log(err);
-      } else {
+
+  User.findOne({ username: username }, async (err, data) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (data === null) {
+        res.status(400).json({ message: "failed" });
+      } else if (data !== null) {
         console.log(data);
-        if (data === null) {
-          res.status(400).json({ message: "failed" });
-        } else if (data !== null) {
-          res.status(200).json({
-            message: "success",
-            token: encode({ username: data.username, isAdmin: data.isAdmin }),
-          });
-        }
+        bcrypt.compare(password, data.password, (err, result) => {
+          if (result) {
+            res.status(200).json({
+              message: "success",
+              token: encode({
+                username: data.username,
+                isAdmin: data.isAdmin,
+              }),
+            });
+          } else {
+            res.status(400).json({ message: "failed" });
+          }
+        });
       }
     }
-  )
+  })
     .clone()
     .catch(function (err) {
       console.log(err);
