@@ -1,5 +1,10 @@
 # Attendance Management System
 
+- It is a full stack web application to handle student course/attendance data. Used NoSQL to store and maintain data. There are two unique login gateways i) Admin and ii) Faculty.
+- Faculty can view student database and can edit only his/her details on Database,
+- Admin can view and edit both student and faculty data.
+- With this interface, admin can add new students, assign new courses and attendance to the student. And with respect to faculty data, admin can add new faculty and courses he/she handles.
+
 ## Tech Stack : ReactJS, MongoDB, Mongoose, NodeJS, ExpressJS
 
 <table>
